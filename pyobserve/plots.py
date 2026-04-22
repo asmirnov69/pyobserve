@@ -12,54 +12,45 @@ def make_plot__(title):
 class Histogram:
     def __init__(self, plot, data_idx):
         self.plot = plot
-        self.plot.fig.figure.add_histogram(x = [])
         self.data_idx = data_idx
+        self.xs = []
+        self.plot.fig.figure.add_histogram(x=[])
 
     def append_curve(self, stream_messages):
-        old_xs = list(self.plot.fig.figure.data[self.data_idx].x)
-        delta_xs = [float(it['value']) for it in stream_messages]
-        print(f"delta_xs: {len(delta_xs)}")
-        new_xs = old_xs + delta_xs
-        print(f"new_xs: {len(new_xs)}")
-        self.plot.fig.figure.data[self.data_idx].x = new_xs
+        self.xs.extend(float(it['value']) for it in stream_messages)
+        self.plot.fig.figure.data[self.data_idx].x = self.xs
 
 
 class Scatter:
     def __init__(self, plot, data_idx):
         self.plot = plot
         self.data_idx = data_idx
-        self.mode = 'lines+markers'
-        self.plot.fig.figure.add_scatter(x = [], y = [], mode = self.mode)
+        self.xs = []
+        self.ys = []
+        self.plot.fig.figure.add_scatter(x=[], y=[], mode='lines+markers')
 
     def append_curve(self, stream_messages):
-        old_ys = list(self.plot.fig.figure.data[self.data_idx].y)
-        delta_ys = [float(it['value']) for it in stream_messages]
-        print(f"old_ys: {len(old_ys)}, delta_ys: {len(delta_ys)}")
-        new_ys = old_ys + delta_ys
-        new_xs = list(range(len(new_ys)))
-        print(f"new_xs: {len(new_xs)}, new_ys: {len(new_ys)}")
-        self.plot.fig.figure.data[self.data_idx].x = new_xs
-        self.plot.fig.figure.data[self.data_idx].y = new_ys
+        self.ys.extend(float(it['value']) for it in stream_messages)
+        self.xs = list(range(len(self.ys)))
+        trace = self.plot.fig.figure.data[self.data_idx]
+        trace.x = self.xs
+        trace.y = self.ys
 
 
 class TimeseriesScatter:
     def __init__(self, plot, data_idx):
         self.plot = plot
         self.data_idx = data_idx
-        self.mode = 'lines+markers'
-        self.plot.fig.figure.add_scatter(x = [], y = [], mode = self.mode)
+        self.xs = []
+        self.ys = []
+        self.plot.fig.figure.add_scatter(x=[], y=[], mode='lines+markers')
 
     def append_curve(self, stream_messages):
-        old_ys = list(self.plot.fig.figure.data[self.data_idx].y)
-        delta_ys = [float(it['value']) for it in stream_messages]
-        print(f"old_ys: {len(old_ys)}, delta_ys: {len(delta_ys)}")
-        new_ys = old_ys + delta_ys
-        old_xs = list(self.plot.fig.figure.data[self.data_idx].x)
-        delta_xs = [datetime.datetime.fromtimestamp(float(it['timestamp'])) for it in stream_messages]
-        new_xs = old_xs + delta_xs
-        print(f"new_xs: {len(new_xs)}, new_ys: {len(new_ys)}")
-        self.plot.fig.figure.data[self.data_idx].x = new_xs
-        self.plot.fig.figure.data[self.data_idx].y = new_ys
+        self.xs.extend(datetime.datetime.fromtimestamp(float(it['timestamp'])) for it in stream_messages)
+        self.ys.extend(float(it['value']) for it in stream_messages)
+        trace = self.plot.fig.figure.data[self.data_idx]
+        trace.x = self.xs
+        trace.y = self.ys
 
 
 class Plot:
