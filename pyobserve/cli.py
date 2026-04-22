@@ -31,7 +31,7 @@ def setup_page():
     rl = RedisLoop()
     pl = PlotterLoop(rl)
 
-    if 0:
+    if 1:
         fig1 = Plot(pl, "fig1")
         fig1.add_timeseries_scatter("data1")
         fig1.add_timeseries_scatter("data2")

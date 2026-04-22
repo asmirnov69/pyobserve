@@ -8,7 +8,7 @@ async def producer():
     r = redis.from_url(REDIS_URL, decode_responses=True)
 
     while True:
-        await asyncio.sleep(2.5)
+        await asyncio.sleep(2.5/10)
 
         new_val = random.randint(1, 10)
         ts = time.time()
