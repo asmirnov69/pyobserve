@@ -15,7 +15,7 @@ pip install -e .
 # Start a Redis instance (required before running anything)
 redis-server
 
-# In one terminal — run the test data producer (publishes to Redis every 2.5s)
+# In one terminal — run the test data producer (publishes to Redis every 0.25s)
 python examples/producer.py
 
 # In another terminal — run the dashboard (serves on http://localhost:8080)
@@ -29,30 +29,28 @@ There are no tests and no linter config.
 The package lives in `pyobserve/` with three modules:
 
 ### `pyobserve/redis_utils.py` — Stream Consumption
-`RedisLoop` polls Redis Streams every 0.5s using `xread()`. Callers register stream keys with handlers via `subscribe(key, handler)`. After each polling cycle, all handlers are called with their buffered messages, then `batch_is_done` (`asyncio.Event`) is set to signal the UI layer. `KeySubscriber` is a small dataclass bundling a buffer and its handler.
+`RedisLoop` polls Redis Streams every 0.5s using `xread()`. Callers register stream keys with handlers via `subscribe(key, handler)`. After each polling cycle all handlers are called with their buffered messages (a list of Redis field-value dicts), the buffer is cleared, then `batch_is_done` (`asyncio.Event`) is set to signal the UI layer. `KeySubscriber` is a small dataclass bundling a buffer and its handler.
 
-### `pyobserve/cli.py` — UI and Visualization (entry point: `pyobserve`)
-`PlotterLoop` owns a list of `Plot` objects and waits on `batch_is_done`. When triggered, it calls `fig.update()` on every plot to push data to the browser.
+### `pyobserve/plots.py` — Plot Types
+`Plot` wraps a NiceGUI `ui.plotly` element and owns a list of curve objects. It exposes `add_scatter`, `add_timeseries_scatter`, and `add_histogram` methods, each of which creates the corresponding curve object, registers a Redis subscription, and tracks the curve in `PlotterLoop`'s `scatters` / `histograms` dicts.
 
-Plot types (`Histogram`, `Scatter`, `TimeseriesScatter`) all wrap a Plotly figure and expose an `append_curve(name, x, y)` method. They use `uirevision='constant'` so Plotly doesn't reset zoom/pan on each update.
+Curve classes `Histogram`, `Scatter`, `TimeseriesScatter` each hold an internal `_pending_*` buffer. `append_curve(stream_messages)` accumulates new points into the pending buffer; `flush()` sends them to the browser via `_extend_traces`.
 
-Startup sequence in `main()`:
-1. Register NiceGUI client-connect handler (waits for a browser connection before starting Redis polling)
-2. Create `RedisLoop` and `PlotterLoop`, wire up subscriptions
-3. Start `PlotterLoop.loop()` as a background `asyncio` task
-4. Start `RedisLoop.loop()` (main async task)
-5. `ui.run()` launches the NiceGUI server
+`_extend_traces` bypasses NiceGUI's `fig.update()` / `Plotly.react()` by calling `Plotly.extendTraces` directly on the mounted Vue element via `client.run_javascript()`. This streams only the new delta to the client and avoids disrupting an in-progress pan or zoom gesture.
+
+### `pyobserve/cli.py` — UI Wiring (entry point: `pyobserve`)
+`setup_page` is registered as the NiceGUI page handler for `/`. Each browser connection gets its own `RedisLoop` and `PlotterLoop`. On disconnect the Redis polling task is cancelled.
+
+`PlotterLoop.loop()` waits on `batch_is_done`, resets the event, and calls `plot.flush()` on every `Plot`. The one `fig.update()` call at the top of `loop()` (before the while loop) is an initial render trigger only.
 
 ### `examples/producer.py` — Synthetic Data Source
-Publishes random float values to Redis Streams `data1` and `data2` every 2.5s using `xadd`. Streams are capped at 10,000 entries via `maxlen`. Run directly with `python examples/producer.py`.
+Publishes random integer values plus a `timestamp` field to Redis Streams `data1` and `data2` every ~0.25s using `xadd`. Streams are capped at 10,000 entries via `maxlen`. Run directly with `python examples/producer.py`.
 
 ## Key Design Decisions
 
 - **Batch signal**: `RedisLoop` fires one `asyncio.Event` after processing all streams per cycle, so the UI updates once per polling interval rather than once per message.
 - **Incremental reads**: `RedisLoop` tracks `last_id` per stream to fetch only new messages on each `xread` call.
-- **Client-gated start**: Redis polling doesn't begin until a browser client connects (`on_connect` event), avoiding wasted polling when nobody is watching.
+- **Per-client isolation**: `setup_page` creates a fresh `RedisLoop` + `PlotterLoop` per browser connection; disconnect cancels the Redis task.
+- **extendTraces over react**: Live updates use `Plotly.extendTraces` via raw JavaScript rather than `Plotly.react`, so pan/zoom state is preserved during streaming updates.
 - **Redis URL**: Hardcoded as `"redis://localhost"` in both `producer.py` and `redis_utils.py` — change both if using a remote Redis instance.
-
-## Known Issue
-
-The current HEAD commit (`94dc2fa`) notes "problem behaviour during append" — there is a suspected bug in how chart data is appended during live updates.
+- **Stream message schema**: Each Redis message must contain at minimum a `"value"` field (float string). `TimeseriesScatter` additionally requires a `"timestamp"` field (Unix epoch float string).
