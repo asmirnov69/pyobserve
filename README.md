@@ -1,4 +1,6 @@
-# pyobserve
+# JupiterLI
+
+JupiterLI - named after small Jupiter moon [Jupiter LI](https://en.wikipedia.org/wiki/Jupiter_LI)
 
 Real-time data visualization dashboard powered by Redis Streams and NiceGUI. Data producers publish to Redis Streams; the browser dashboard updates live as new data arrives.
 
@@ -21,7 +23,7 @@ brew services start redis
 docker run -p 6379:6379 redis
 ```
 
-## Install pyobserve
+## Install JupiterLI
 
 ```bash
 pip install -e .
