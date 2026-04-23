@@ -42,7 +42,9 @@ Curve classes `Histogram`, `Scatter`, `TimeseriesScatter` each hold an internal 
 `load_config(pl, ttl_path)` parses a Turtle/RDF file with `rdflib` and builds the dashboard from it: each `jli:Plot` subject becomes a `Plot` (titled via `:title`), and each `jli:Scatter` / `jli:TimeseriesScatter` / `jli:Histogram` subject becomes a curve on its referenced `:on_plot`, subscribed to its `:redis_key`. The `jli:` and `:` (scratch) namespaces are hardcoded to `http://example.com/jupiterli#` and `http://example.com/scratch#`.
 
 ### `jupiterli/cli.py` — UI Wiring (entry point: `jupiterli`)
-`setup_page` is registered as the NiceGUI page handler for `/`. Each browser connection gets its own `RedisLoop` and `PlotterLoop`, then calls `load_config(pl, "examples/producer.ttl")` to instantiate plots/curves from the TTL config. On disconnect the Redis polling task is cancelled.
+`setup_page` is registered as the NiceGUI page handler for `/`. Each browser connection gets its own `RedisLoop` and `PlotterLoop`, then calls `load_config(pl, TTL_PATH)` (module-level constant, default `"examples/producer.ttl"`) to instantiate plots/curves from the TTL config. On disconnect the Redis polling task is cancelled.
+
+`_watch_files` is an auto-restart watcher registered via `app.on_startup`. It polls `st_mtime` on `TTL_PATH` plus every `*.py` under `PKG_DIR` (the `jupiterli/` package dir) every 1s; on any change it `os.execv`s the current interpreter with the original `sys.argv`, replacing the process in place. NiceGUI's own `reload=True` is not used because it does not work with console-script entry points (it re-imports the module under its dotted name, never hitting the `__main__`/`__mp_main__` guard).
 
 `PlotterLoop.loop()` waits on `batch_is_done`, resets the event, and calls `plot.flush()` on every `Plot`. The one `fig.update()` call at the top of `loop()` (before the while loop) is an initial render trigger only.
 
@@ -60,4 +62,5 @@ Turtle/RDF file declaring the plots and curves for `setup_page` to render. Conta
 - **extendTraces over react**: Live updates use `Plotly.extendTraces` via raw JavaScript rather than `Plotly.react`, so pan/zoom state is preserved during streaming updates.
 - **Redis URL**: Hardcoded as `"redis://localhost"` in both `producer.py` and `redis_utils.py` — change both if using a remote Redis instance.
 - **Stream message schema**: Each Redis message must contain at minimum a `"value"` field (float string). `TimeseriesScatter` additionally requires a `"timestamp"` field (Unix epoch float string).
-- **TTL-driven dashboard**: Plots and curves are declared in a Turtle file (`examples/producer.ttl`) rather than hardcoded in `cli.py`. Adding or reconfiguring a chart means editing the TTL, not the Python. The config path is currently hardcoded in `setup_page` — change it there to point at a different file.
+- **TTL-driven dashboard**: Plots and curves are declared in a Turtle file (`examples/producer.ttl`) rather than hardcoded in `cli.py`. Adding or reconfiguring a chart means editing the TTL, not the Python. The config path is the module-level `TTL_PATH` constant in `cli.py` — change it there to point at a different file.
+- **In-process restart-on-change**: `cli.py` polls mtimes of the TTL file and all package `*.py` files and `os.execv`s on any change, instead of using NiceGUI's `reload=True` (which is incompatible with the console-script entry point).
