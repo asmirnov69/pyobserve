@@ -4,12 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jupiterli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
     "redis",
     "nicegui",
     "plotly",
     "rdflib",
+    "pyshacl"
 ]
 
 [project.scripts]
