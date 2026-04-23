@@ -1,4 +1,5 @@
 from rdflib import Graph, RDF, URIRef, Literal
+import jupiterli, os.path
 
 # =========================================================
 # Namespaces
@@ -226,6 +227,8 @@ def build_runtime(g, class_prefix="jli__"):
 if __name__ == "__main__":
 
     g = Graph()
+    jli_shacl_ttl_path = os.path.join(jupiterli.__path__[0], "ttl/jli-shacl.ttl")
+    g.parse(jli_shacl_ttl_path, format = "turtle")
     g.parse("producer.ttl", format="turtle")
 
     ctx, shapes, class_sources = build_runtime(g)

@@ -1,55 +1,13 @@
-# to validate run: pyshacl -i rdfs config.ttl -f human
-
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-
 @prefix jli: <http://example.com/jupiterli#> .
 @prefix : <http://example.com/scratch#> .
 
-jli:Plot a rdfs:Class, sh:NodeShape;
-             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
-             sh:property [ sh:path :title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
-             .
+:fig1 a jli:Plot; jli:title "FIG 1" .
+:fig1_c1 a jli:Scatter; jli:title "trace0"; jli:on_plot :fig1; jli:redis_key "data1"; jli:line_color [ a jli:Color; rdf:value "red" ].
+:fig1_c2 a jli:Scatter; jli:title "trace1"; jli:on_plot :fig1; jli:redis_key "data2" .
 
-#:all_jli_colors a rdf:List; rdf:first "red"; rdf:rest ("green" "blue") .
-:all_jli_colors a rdf:List; rdf:rest ("red" "green" "blue") .
+:fig2 a jli:Plot; jli:title "fig2" .
+:fig2_c1 a jli:Histogram; jli:title "trace1"; jli:on_plot :fig2; jli:redis_key "data1" .
 
-jli:Color a rdfs:Class, sh:NodeShape;
-	   sh:closed true; sh:ignoredProperties ( rdf:type ) ;
-	   sh:property [ sh:path rdf:value; sh:datatype xsd:string; sh:in :all_jli_colors; sh:minCount 1; sh:maxCount 1 ];
-	   .
-
-jli:Scatter a rdfs:Class, sh:NodeShape;
-             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
-             sh:property [sh:path :title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
-	     sh:property [sh:path :line_color; sh:class jli:Color; sh:minCount 0; sh:maxCount 1 ];
-	     sh:property [sh:path :on_plot; sh:class jli:Plot; sh:minCount 1; sh:maxCount 1 ];
-             sh:property [sh:path :redis_key; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ]
-             .
-
-jli:TimeseriesScatter a rdfs:Class, sh:NodeShape;
-             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
-             sh:property [sh:path :title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
-             sh:property [sh:path :on_plot; sh:class jli:Plot; sh:minCount 1; sh:maxCount 1 ];
-             sh:property [sh:path :redis_key; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ]
-             .
-
-jli:Histogram a rdfs:Class, sh:NodeShape;
-             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
-             sh:property [sh:path :title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
-             sh:property [sh:path :on_plot; sh:class jli:Plot; sh:minCount 1; sh:maxCount 1 ];
-             sh:property [sh:path :redis_key; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ]
-             .
-
-
-:fig1 a jli:Plot; :title "FIG1" .
-:fig1_c1 a jli:Scatter; :title "trace0"; :on_plot :fig1; :redis_key "data1"; :line_color [ a jli:Color; rdf:value "red" ].
-:fig1_c2 a jli:Scatter; :title "trace1"; :on_plot :fig1; :redis_key "data2" .
-
-:fig2 a jli:Plot; :title "fig2" .
-:fig2_c1 a jli:Histogram; :title "trace1"; :on_plot :fig2; :redis_key "data1" .
-
-:fig3 a jli:Plot; :title "fig3" .
-:fig3_c1 a jli:TimeseriesScatter; :title "trace0"; :on_plot :fig3; :redis_key "data1" .
+:fig3 a jli:Plot; jli:title "fig3" .
+:fig3_c1 a jli:TimeseriesScatter; jli:title "trace0"; jli:on_plot :fig3; jli:redis_key "data1" .

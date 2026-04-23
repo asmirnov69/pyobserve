@@ -10,14 +10,10 @@ _CURVE_METHODS = {
     URIRef(JLI + "Histogram"): "add_histogram",
 }
 
-
-def load_config(pl, ttl_path):
-    g = Graph()
-    g.parse(ttl_path, format="turtle")
-
-    title = URIRef(SCRATCH + "title")
-    on_plot = URIRef(SCRATCH + "on_plot")
-    redis_key = URIRef(SCRATCH + "redis_key")
+def load_config(g:Graph, pl):
+    title = URIRef(JLI + "title")
+    on_plot = URIRef(JLI + "on_plot")
+    redis_key = URIRef(JLI + "redis_key")
 
     plots = {}
     for s in g.subjects(RDF.type, URIRef(JLI + "Plot")):

@@ -1,0 +1,43 @@
+# to validate run: pyshacl -i rdfs config.ttl -f human
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+@prefix jli: <http://example.com/jupiterli#> .
+
+jli:Plot a rdfs:Class, sh:NodeShape;
+             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
+             sh:property [ sh:path jli:title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
+             .
+
+#jli:all_jli_colors a rdf:List; rdf:first "red"; rdf:rest ("green" "blue") .
+jli:all_jli_colors a rdf:List; rdf:rest ("red" "green" "blue") .
+
+jli:Color a rdfs:Class, sh:NodeShape;
+	   sh:closed true; sh:ignoredProperties ( rdf:type ) ;
+	   sh:property [ sh:path rdf:value; sh:datatype xsd:string; sh:in jli:all_jli_colors; sh:minCount 1; sh:maxCount 1 ];
+	   .
+
+jli:Scatter a rdfs:Class, sh:NodeShape;
+             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
+             sh:property [sh:path jli:title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
+	     sh:property [sh:path jli:line_color; sh:class jli:Color; sh:minCount 0; sh:maxCount 1 ];
+	     sh:property [sh:path jli:on_plot; sh:class jli:Plot; sh:minCount 1; sh:maxCount 1 ];
+             sh:property [sh:path jli:redis_key; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ]
+             .
+
+jli:TimeseriesScatter a rdfs:Class, sh:NodeShape;
+             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
+             sh:property [sh:path jli:title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
+             sh:property [sh:path jli:on_plot; sh:class jli:Plot; sh:minCount 1; sh:maxCount 1 ];
+             sh:property [sh:path jli:redis_key; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ]
+             .
+
+jli:Histogram a rdfs:Class, sh:NodeShape;
+             sh:closed true; sh:property [ sh:path rdf:type; sh:nodeKind sh:IRI ];
+             sh:property [sh:path jli:title; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ];
+             sh:property [sh:path jli:on_plot; sh:class jli:Plot; sh:minCount 1; sh:maxCount 1 ];
+             sh:property [sh:path jli:redis_key; sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1 ]
+             .
