@@ -37,12 +37,15 @@ pip install JupiterLI from github repo:
 (jupiterli-venv) % jupiterli status
 ```
 
-JupipterLI is now ready to accept telemetry information. It should be observable on JupiterLI-browser webapp which is running on the same host port 5173.
-To access that open http://localhost:5173 in your browser.
+JupipterLI is now ready to accept telemetry information. It should be observable using JupiterLI-viewer app which connects to JupiterLI server.
+
+# How to install and run JupiterLI-viewer?
+
+TBC
 
 ## Run example
 
-In one terminal, start the data producer (publishes random values to Redis every 2.5s):
+In one terminal, start the data producer (publishes random values to mqtt every 2.5s):
 ```bash
 % source jupipterli-venv
 (jupiterli-venv) % python examples/producer.py

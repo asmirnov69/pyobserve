@@ -43,6 +43,7 @@ app = FastAPI(title="db-access-server", lifespan = lifespan)
 class Run(BaseModel):
     table__: str
     run_id: str
+    category: str
     created_ts: float
     host: str
     pid: int
@@ -73,7 +74,7 @@ def list_runs() -> list[Run]:
     result = app.db.query(
         "SELECT * FROM runs ORDER BY created_ts DESC"
     )
-    return [Run(table__ = 'runs', run_id=row[0], created_ts = row[1], host = row[2], pid = row[3], argv0 = row[4], args = row[5], run_label=row[6]) for row in result.result_rows]
+    return [Run(table__ = 'runs', run_id=row[0], category = row[1], created_ts = row[1+1], host = row[2+1], pid = row[3+1], argv0 = row[4+1], args = row[5+1], run_label=row[6+1]) for row in result.result_rows]
 
 @app.get("/api/runs/{run_id}/series", response_model=list[Series])
 def list_series(run_id: str) -> list[Series]:
