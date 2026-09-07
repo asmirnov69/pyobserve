@@ -19,5 +19,5 @@ def main():
     asyncio.run(producer())
 
 if __name__ == "__main__":
-    save_run_dets(category = "examples/producer")
+    save_run_dets(run_category = "examples/producer")
     main()

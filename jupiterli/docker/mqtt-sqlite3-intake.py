@@ -20,7 +20,7 @@ def create_all_tables(ch):
     qs = []
     qs.append("""
     CREATE TABLE IF NOT EXISTS runs (
-    run_id varchar, category varchar,
+    run_id varchar, run_category varchar,
     created_ts real, host varchar, pid integer,
     argv0 varcharg, args varchar, run_label varchar
     )
